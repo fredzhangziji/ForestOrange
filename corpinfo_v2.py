@@ -250,4 +250,4 @@ for index in range(1, lastIndex):
                     ii = ii + 1
                     print(z)
                 print('当前共有', ii, '条数据。')
-                print()
+                print()     # ok
