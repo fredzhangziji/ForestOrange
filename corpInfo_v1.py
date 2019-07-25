@@ -172,4 +172,4 @@ for index in range(1, lastIndex):
                 print('发证日期：', assessTime[0].text)
                 carryRange = targetPageEtree.xpath('//*[@id="txtCarryRange"]')
                 print('业务承接范围：', carryRange[0].text)
-                print()     # okkkkk
+                print()     # ok
