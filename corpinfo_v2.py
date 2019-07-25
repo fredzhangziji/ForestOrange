@@ -2,6 +2,16 @@
 # -*- coding: UTF-8 -*-
 import requests
 from lxml import etree
+import pymongo
+import uuid
+import time
+
+myClient = pymongo.MongoClient('mongodb://localhost:27017')
+myDB = myClient['河北高速公路阳光工程企业信息']
+myCol = myDB['企业信息']
+myCol.delete_many({})     # 清空数据库
+
+tmpDict = {}    # 用来储存每一家公司的信息
 
 sourceURL = 'http://120.211.63.97:8213/forUI/corpInfo/showCorpList.aspx'
 BaseInfoPrefix = 'http://120.211.63.97:8213/forUI/corpInfo/CorpBaseInfo.aspx?CorpCode='
@@ -26,52 +36,85 @@ for index in range(1, lastIndex):
                 targetPageHTML = requests.get(BaseInfoURL)
                 targetPageEtree = etree.HTML(targetPageHTML.text)
                 companyCode1 = targetPageEtree.xpath('//*[@id="LblCorporationCode"]')
-                print('组织机构代码：', companyCode1[0].text)
                 companyName = targetPageEtree.xpath('//*[@id="LblCorporationName"]')
-                print('企业名称：', companyName[0].text)
                 regProvince = targetPageEtree.xpath('//*[@id="LblRegProvince"]')
-                print('注册省份：', regProvince[0].text)
                 regCity = targetPageEtree.xpath('//*[@id="LblRegCity"]')
-                print('注册城市：', regCity[0].text)
                 regAddress = targetPageEtree.xpath('//*[@id="LblRegAddress"]')
-                print('注册地址：', regAddress[0].text)
                 regZipCode = targetPageEtree.xpath('//*[@id="LblRegCityPost"]')
-                print('注册城市邮编：', regZipCode[0].text)
                 companyKind = targetPageEtree.xpath('//*[@id="LblCorporationKind"]')
-                print('企业性质：', companyKind[0].text)
                 companyType = targetPageEtree.xpath('//*[@id="LblCorporationType"]')
-                print('企业类型：', companyType[0].text)
                 bizLicense = targetPageEtree.xpath('//*[@id="LblBusinessLicence"]')
-                print('营业执照注册号：', bizLicense[0].text)
                 regTime = targetPageEtree.xpath('//*[@id="LblRegTime"]')
-                print('营业执照注册时间：', regTime[0].text)
                 regFund = targetPageEtree.xpath('//*[@id="LblRegFund"]')
-                print('注册资金（万元）：', regFund[0].text)
                 buildOnTime = targetPageEtree.xpath('//*[@id="LblBuildOnTime"]')
-                print('成立时间：', buildOnTime[0].text)
                 issueDepart = targetPageEtree.xpath('//*[@id="txtIssueDepartment"]')
-                print('发照机关：', issueDepart[0].text)
                 bizRange = targetPageEtree.xpath('//*[@id="LblBusinessRange"]')
-                print('经营范围：', bizRange[0].text)
                 companyResume = targetPageEtree.xpath('//*[@id="LblCorpResume"]')
-                print('资产构成情况及投资参股的关联企业情况：', companyResume[0].text)
                 remark = targetPageEtree.xpath('//*[@id="txtRemark"]')
-                print('备注：', remark[0].text)
 
                 # 资质信息页面抓取
                 AptitudeInfoURL = AptitudeInfoPrefix + companyCodeFinal
                 targetPageHTML = requests.get(AptitudeInfoURL)
                 targetPageEtree = etree.HTML(targetPageHTML.text)
                 CACode = targetPageEtree.xpath('//*[@id="txtCACode"]')
-                print('资质证书编号：', CACode[0].text)
                 approvalCode = targetPageEtree.xpath('//*[@id="txtSealCode"]')
-                print('批准文号：', approvalCode[0].text)
                 issueDepartment = targetPageEtree.xpath('//*[@id="txtIssueDepartment"]')
-                print('发证机关：', issueDepartment[0].text)
                 assessTime = targetPageEtree.xpath('//*[@id="txtAssessTime"]')
-                print('发证日期：', assessTime[0].text)
                 carryRange = targetPageEtree.xpath('//*[@id="txtCarryRange"]')
-                print('业务承接范围：', carryRange[0].text)
+
+                # 打印以上所有信息
+                # print('组织机构代码：', companyCode1[0].text)
+                # print('企业名称：', companyName[0].text)
+                # print('注册省份：', regProvince[0].text)
+                # print('注册城市：', regCity[0].text)
+                # print('注册地址：', regAddress[0].text)
+                # print('注册城市邮编：', regZipCode[0].text)
+                # print('企业性质：', companyKind[0].text)
+                # print('企业类型：', companyType[0].text)
+                # print('营业执照注册号：', bizLicense[0].text)
+                # print('营业执照注册时间：', regTime[0].text)
+                # print('注册资金（万元）：', regFund[0].text)
+                # print('成立时间：', buildOnTime[0].text)
+                # print('发照机关：', issueDepart[0].text)
+                # print('经营范围：', bizRange[0].text)
+                # print('资产构成情况及投资参股的关联企业情况：', companyResume[0].text)
+                # print('备注：', remark[0].text)
+                # print('资质证书编号：', CACode[0].text)
+                # print('批准文号：', approvalCode[0].text)
+                # print('发证机关：', issueDepartment[0].text)
+                # print('发证日期：', assessTime[0].text)
+                # print('业务承接范围：', carryRange[0].text)
+
+                # 将信息存入字典，以备输入数据库
+                tmpDict['_id'] = uuid.uuid4()
+                tmpDict['组织机构代码'] = companyCode1[0].text
+                tmpDict['企业名称'] = companyName[0].text
+                tmpDict['注册省份'] = regProvince[0].text
+                tmpDict['注册城市'] = regCity[0].text
+                tmpDict['注册地址'] = regAddress[0].text
+                tmpDict['注册城市邮编'] = regZipCode[0].text
+                tmpDict['企业性质'] = companyKind[0].text
+                tmpDict['企业类型'] = companyType[0].text
+                tmpDict['营业执照注册号'] = bizLicense[0].text
+                tmpDict['营业执照注册时间'] = regTime[0].text
+                tmpDict['注册资金（万元）'] = regFund[0].text
+                tmpDict['成立时间'] = buildOnTime[0].text
+                tmpDict['发照机关'] = issueDepart[0].text
+                tmpDict['经营范围'] = bizRange[0].text
+                tmpDict['资产构成情况及投资参股的关联企业情况'] = companyResume[0].text
+                tmpDict['备注'] = remark[0].text
+                tmpDict['资质证书编号'] = CACode[0].text
+                tmpDict['批准文号'] = approvalCode[0].text
+                tmpDict['发证机关'] = issueDepartment[0].text
+                tmpDict['发证日期'] = assessTime[0].text
+                tmpDict['业务承接范围'] = carryRange[0].text
+
+                myCol.insert_one(tmpDict)
+                ii = 0
+                for z in myCol.find({}, {'_id': 0}):
+                    ii = ii + 1
+                    print(z)
+                print('当前共有', ii, '条数据。')
                 print()
     else:   # 不是第一页
         nextPageEtree = etree.HTML(nextPageRes.text)
@@ -126,50 +169,81 @@ for index in range(1, lastIndex):
                 targetPageHTML = requests.get(BaseInfoURL)
                 targetPageEtree = etree.HTML(targetPageHTML.text)
                 companyCode1 = targetPageEtree.xpath('//*[@id="LblCorporationCode"]')
-                print('组织机构代码：', companyCode1[0].text)
                 companyName = targetPageEtree.xpath('//*[@id="LblCorporationName"]')
-                print('企业名称：', companyName[0].text)
                 regProvince = targetPageEtree.xpath('//*[@id="LblRegProvince"]')
-                print('注册省份：', regProvince[0].text)
                 regCity = targetPageEtree.xpath('//*[@id="LblRegCity"]')
-                print('注册城市：', regCity[0].text)
                 regAddress = targetPageEtree.xpath('//*[@id="LblRegAddress"]')
-                print('注册地址：', regAddress[0].text)
                 regZipCode = targetPageEtree.xpath('//*[@id="LblRegCityPost"]')
-                print('注册城市邮编：', regZipCode[0].text)
                 companyKind = targetPageEtree.xpath('//*[@id="LblCorporationKind"]')
-                print('企业性质：', companyKind[0].text)
                 companyType = targetPageEtree.xpath('//*[@id="LblCorporationType"]')
-                print('企业类型：', companyType[0].text)
                 bizLicense = targetPageEtree.xpath('//*[@id="LblBusinessLicence"]')
-                print('营业执照注册号：', bizLicense[0].text)
                 regTime = targetPageEtree.xpath('//*[@id="LblRegTime"]')
-                print('营业执照注册时间：', regTime[0].text)
                 regFund = targetPageEtree.xpath('//*[@id="LblRegFund"]')
-                print('注册资金（万元）：', regFund[0].text)
                 buildOnTime = targetPageEtree.xpath('//*[@id="LblBuildOnTime"]')
-                print('成立时间：', buildOnTime[0].text)
                 issueDepart = targetPageEtree.xpath('//*[@id="txtIssueDepartment"]')
-                print('发照机关：', issueDepart[0].text)
                 bizRange = targetPageEtree.xpath('//*[@id="LblBusinessRange"]')
-                print('经营范围：', bizRange[0].text)
                 companyResume = targetPageEtree.xpath('//*[@id="LblCorpResume"]')
-                print('资产构成情况及投资参股的关联企业情况：', companyResume[0].text)
                 remark = targetPageEtree.xpath('//*[@id="txtRemark"]')
-                print('备注：', remark[0].text)
 
                 # 资质信息页面抓取
                 AptitudeInfoURL = AptitudeInfoPrefix + companyCodeFinal
                 targetPageHTML = requests.get(AptitudeInfoURL)
                 targetPageEtree = etree.HTML(targetPageHTML.text)
                 CACode = targetPageEtree.xpath('//*[@id="txtCACode"]')
-                print('资质证书编号：', CACode[0].text)
                 approvalCode = targetPageEtree.xpath('//*[@id="txtSealCode"]')
-                print('批准文号：', approvalCode[0].text)
                 issueDepartment = targetPageEtree.xpath('//*[@id="txtIssueDepartment"]')
-                print('发证机关：', issueDepartment[0].text)
                 assessTime = targetPageEtree.xpath('//*[@id="txtAssessTime"]')
-                print('发证日期：', assessTime[0].text)
                 carryRange = targetPageEtree.xpath('//*[@id="txtCarryRange"]')
-                print('业务承接范围：', carryRange[0].text)
+
+                # 打印以上所有信息
+                # print('组织机构代码：', companyCode1[0].text)
+                # print('企业名称：', companyName[0].text)
+                # print('注册省份：', regProvince[0].text)
+                # print('注册城市：', regCity[0].text)
+                # print('注册地址：', regAddress[0].text)
+                # print('注册城市邮编：', regZipCode[0].text)
+                # print('企业性质：', companyKind[0].text)
+                # print('企业类型：', companyType[0].text)
+                # print('营业执照注册号：', bizLicense[0].text)
+                # print('营业执照注册时间：', regTime[0].text)
+                # print('注册资金（万元）：', regFund[0].text)
+                # print('成立时间：', buildOnTime[0].text)
+                # print('发照机关：', issueDepart[0].text)
+                # print('经营范围：', bizRange[0].text)
+                # print('资产构成情况及投资参股的关联企业情况：', companyResume[0].text)
+                # print('备注：', remark[0].text)
+                # print('资质证书编号：', CACode[0].text)
+                # print('批准文号：', approvalCode[0].text)
+                # print('发证机关：', issueDepartment[0].text)
+                # print('发证日期：', assessTime[0].text)
+                # print('业务承接范围：', carryRange[0].text)
+
+                # 将信息存入字典，以备输入数据库
+                tmpDict['_id'] = uuid.uuid4()
+                tmpDict['组织机构代码'] = companyCode1[0].text
+                tmpDict['企业名称'] = companyName[0].text
+                tmpDict['注册省份'] = regProvince[0].text
+                tmpDict['注册城市'] = regCity[0].text
+                tmpDict['注册地址'] = regAddress[0].text
+                tmpDict['注册城市邮编'] = regZipCode[0].text
+                tmpDict['企业性质'] = companyKind[0].text
+                tmpDict['企业类型'] = companyType[0].text
+                tmpDict['营业执照注册号'] = bizLicense[0].text
+                tmpDict['营业执照注册时间'] = regTime[0].text
+                tmpDict['注册资金（万元）'] = regFund[0].text
+                tmpDict['成立时间'] = buildOnTime[0].text
+                tmpDict['发照机关'] = issueDepart[0].text
+                tmpDict['经营范围'] = bizRange[0].text
+                tmpDict['资产构成情况及投资参股的关联企业情况'] = companyResume[0].text
+                tmpDict['备注'] = remark[0].text
+                tmpDict['资质证书编号'] = CACode[0].text
+                tmpDict['批准文号'] = approvalCode[0].text
+                tmpDict['发证机关'] = issueDepartment[0].text
+                tmpDict['发证日期'] = assessTime[0].text
+                tmpDict['业务承接范围'] = carryRange[0].text
+
+                myCol.insert_one(tmpDict)
+                for z in myCol.find({}, {'_id': 0}):
+                    print(z)
+
                 print()
