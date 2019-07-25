@@ -245,5 +245,9 @@ for index in range(1, lastIndex):
                 myCol.insert_one(tmpDict)
                 for z in myCol.find({}, {'_id': 0}):
                     print(z)
-
+                ii = 0
+                for z in myCol.find({}, {'_id': 0}):
+                    ii = ii + 1
+                    print(z)
+                print('当前共有', ii, '条数据。')
                 print()
